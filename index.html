@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#7c3aed">
+  <title>Checklist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #7c3aed;
+      --indigo: #6366f1;
+      --gradient: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+      --bg: #f4f4f7;
+      --bg-gradient: linear-gradient(150deg, #fdf4ff 0%, #eef2ff 45%, #f0fdfa 100%);
+      --card: #ffffff;
+      --card-shadow: 0 2px 14px rgba(99,102,241,0.09);
+      --border: #e5e7eb;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --selected: #ede9fe;
+      --fab-shadow: 0 4px 20px rgba(124,58,237,0.45);
+      --danger: #ef4444;
+      --success: #10b981;
+      --font: 'Plus Jakarta Sans', sans-serif;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Views */
+    .view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+      overflow: hidden;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+    }
+
+    #home-view {
+      transform: translateX(0);
+      opacity: 1;
+      z-index: 1;
+    }
+
+    #home-view.slide-out {
+      transform: translateX(-28%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #detail-view {
+      transform: translateX(100%);
+      opacity: 0;
+      z-index: 2;
+    }
+
+    #detail-view.slide-in {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* Header */
+    .header {
+      padding: 52px 20px 16px;
+      flex-shrink: 0;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .header-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--card);
+      border: none;
+      border-radius: 12px;
+      padding: 8px 14px 8px 10px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--purple);
+      box-shadow: var(--card-shadow);
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+
+    .back-btn:active { opacity: 0.7; }
+
+    /* Scrollable content */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 20px 120px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* List cards on home */
+    .list-card {
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      padding: 18px 18px 14px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      animation: slideUp 0.3s ease forwards;
+    }
+
+    .list-card:active {
+      transform: scale(0.985);
+      box-shadow: 0 1px 6px rgba(99,102,241,0.06);
+    }
+
+    .list-card-accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 16px 0 0 16px;
+    }
+
+    .list-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-left: 12px;
+    }
+
+    .list-card-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      flex: 1;
+      word-break: break-word;
+    }
+
+    .list-card-count {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--purple);
+      background: var(--selected);
+      border-radius: 20px;
+      padding: 3px 10px;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .list-card-progress {
+      padding-left: 12px;
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .progress-text.complete {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .progress-bar-track {
+      height: 4px;
+      background: #f3f4f6;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 4px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 32px;
+      text-align: center;
+      animation: slideUp 0.35s ease forwards;
+    }
+
+    .empty-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--selected);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 36px;
+    }
+
+    .empty-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .empty-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Detail header */
+    .detail-header-top {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .detail-list-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .detail-header-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: none;
+      background: var(--card);
+      box-shadow: var(--card-shadow);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: opacity 0.15s, color 0.15s;
+    }
+
+    .icon-btn:active { opacity: 0.7; }
+    .icon-btn.danger:hover { color: var(--danger); }
+    .icon-btn.danger:active { color: var(--danger); }
+
+    /* Progress summary bar */
+    .detail-progress-summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 11px 14px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .detail-progress-nums {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .detail-progress-nums .done-count {
+      color: var(--purple);
+      font-weight: 800;
+    }
+
+    .detail-progress-bar-track {
+      flex: 1;
+      height: 6px;
+      background: #f3f4f6;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .detail-progress-bar-fill {
+      height: 100%;
+      background: var(--gradient);
+      border-radius: 6px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .reset-btn {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--purple);
+      background: var(--selected);
+      border: none;
+      border-radius: 10px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .reset-btn:active { opacity: 0.7; }
+
+    /* Checklist items */
+    .checklist-item {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+      opacity: 0;
+      animation: slideUp 0.3s ease forwards;
+      transition: opacity 0.2s ease;
+    }
+
+    .checklist-item.is-checked {
+      opacity: 0.6;
+    }
+
+    .item-main {
+      display: flex;
+      align-items: center;
+      padding: 14px 12px 14px 16px;
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+      gap: 12px;
+    }
+
+    .item-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      background: white;
+    }
+
+    .checklist-item.is-checked .item-checkbox {
+      background: var(--gradient);
+      border-color: transparent;
+    }
+
+    .item-checkbox svg {
+      opacity: 0;
+      transform: scale(0.4);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .checklist-item.is-checked .item-checkbox svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .item-text {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+    }
+
+    .checklist-item.is-checked .item-text {
+      text-decoration: line-through;
+      color: var(--text-tertiary);
+    }
+
+    .item-delete {
+      width: 40px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-tertiary);
+      transition: color 0.15s;
+      flex-shrink: 0;
+      padding: 0 12px 0 4px;
+    }
+
+    .item-delete:hover, .item-delete:active { color: var(--danger); }
+
+    /* Section header for checked items */
+    .items-section-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 12px 4px 8px;
+    }
+
+    /* FAB */
+    .fab {
+      position: fixed;
+      bottom: calc(28px + var(--safe-bottom));
+      right: 24px;
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: var(--gradient);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--fab-shadow);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+      z-index: 100;
+    }
+
+    .fab:active {
+      transform: scale(0.91);
+      box-shadow: 0 2px 10px rgba(124,58,237,0.3);
+    }
+
+    /* Bottom Sheet */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.42);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+    }
+
+    .sheet-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-radius: 24px 24px 0 0;
+      padding: 20px 20px calc(24px + var(--safe-bottom));
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 -4px 32px rgba(99,102,241,0.1);
+    }
+
+    .bottom-sheet.visible {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      margin: 0 auto 20px;
+    }
+
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+
+    .sheet-input {
+      width: 100%;
+      background: #f9fafb;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 14px;
+    }
+
+    .sheet-input:focus {
+      border-color: var(--purple);
+      background: white;
+    }
+
+    .sheet-input::placeholder { color: var(--text-tertiary); }
+
+    .sheet-actions {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      background: #f3f4f6;
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-confirm {
+      background: var(--gradient);
+      border: none;
+      border-radius: 14px;
+      padding: 14px;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.3);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+
+    .btn-cancel:active { opacity: 0.75; }
+    .btn-confirm:active { opacity: 0.85; transform: scale(0.98); }
+
+    /* Confirm Dialog */
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.42);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .dialog-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .dialog {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+      transform: scale(0.9);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .dialog-overlay.visible .dialog {
+      transform: scale(1);
+    }
+
+    .dialog-icon {
+      width: 48px;
+      height: 48px;
+      background: #fef2f2;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .dialog-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .dialog-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-dialog-cancel {
+      background: #f3f4f6;
+      border: none;
+      border-radius: 12px;
+      padding: 13px;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-dialog-confirm {
+      background: var(--danger);
+      border: none;
+      border-radius: 12px;
+      padding: 13px;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-dialog-cancel:active, .btn-dialog-confirm:active { opacity: 0.75; }
+
+    /* Animations */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Desktop */
+    @media (min-width: 600px) {
+      body { display: flex; justify-content: center; align-items: stretch; }
+
+      #app {
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 0 80px rgba(99,102,241,0.1);
+      }
+
+      .fab {
+        right: calc(50% - 240px + 24px);
+      }
+
+      .bottom-sheet {
+        left: calc(50% - 240px);
+        right: calc(50% - 240px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+
+    <!-- HOME VIEW -->
+    <div class="view" id="home-view">
+      <div class="header">
+        <div class="header-top">
+          <div>
+            <div class="header-title">My Lists</div>
+            <div class="header-subtitle" id="home-subtitle">0 lists</div>
+          </div>
+        </div>
+      </div>
+      <div class="content" id="home-content"></div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div class="view" id="detail-view">
+      <div class="header">
+        <div class="detail-header-top">
+          <button class="back-btn" onclick="goHome()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Lists
+          </button>
+          <div class="detail-list-name" id="detail-list-name"></div>
+          <div class="detail-header-actions">
+            <button class="icon-btn danger" onclick="deleteCurrentList()" title="Delete list">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="detail-progress-summary">
+          <div class="detail-progress-nums">
+            <span class="done-count" id="detail-done">0</span> / <span id="detail-total">0</span> done
+          </div>
+          <div class="detail-progress-bar-track">
+            <div class="detail-progress-bar-fill" id="detail-progress-fill" style="width:0%"></div>
+          </div>
+          <button class="reset-btn" onclick="resetList()">Reset</button>
+        </div>
+      </div>
+      <div class="content" id="detail-content"></div>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fab" onclick="openAddSheet()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+  <!-- Bottom Sheet -->
+  <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+  <div class="bottom-sheet" id="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title">New List</div>
+    <input class="sheet-input" id="sheet-input" placeholder="Enter name…" maxlength="80" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
+      <button class="btn-confirm" id="sheet-confirm-btn" onclick="confirmSheet()">Create</button>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div class="dialog-overlay" id="dialog-overlay">
+    <div class="dialog">
+      <div class="dialog-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+        </svg>
+      </div>
+      <div class="dialog-title" id="dialog-title">Delete List?</div>
+      <div class="dialog-body" id="dialog-body">This action cannot be undone.</div>
+      <div class="dialog-actions">
+        <button class="btn-dialog-cancel" onclick="closeDialog()">Cancel</button>
+        <button class="btn-dialog-confirm" id="dialog-confirm-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────────────────────
+    let lists = [];
+    let currentListId = null;
+    let sheetMode = null; // 'add-list' | 'add-item'
+    let dialogCallback = null;
+
+    // ── Storage ────────────────────────────────────────────────────────────────
+    function save() {
+      localStorage.setItem('checklist_v1', JSON.stringify(lists));
+    }
+
+    function load() {
+      try {
+        lists = JSON.parse(localStorage.getItem('checklist_v1')) || [];
+      } catch {
+        lists = [];
+      }
+    }
+
+    function genId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    // ── Navigation ─────────────────────────────────────────────────────────────
+    function goHome() {
+      document.getElementById('home-view').classList.remove('slide-out');
+      document.getElementById('detail-view').classList.remove('slide-in');
+      currentListId = null;
+      setTimeout(renderHome, 80);
+    }
+
+    function goDetail(listId) {
+      currentListId = listId;
+      renderDetail();
+      document.getElementById('home-view').classList.add('slide-out');
+      document.getElementById('detail-view').classList.add('slide-in');
+    }
+
+    // ── Render Home ────────────────────────────────────────────────────────────
+    function renderHome() {
+      const subtitle = document.getElementById('home-subtitle');
+      const content = document.getElementById('home-content');
+
+      subtitle.textContent = lists.length === 0 ? 'No lists yet' :
+        lists.length === 1 ? '1 list' : `${lists.length} lists`;
+
+      if (lists.length === 0) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">No lists yet</div>
+            <div class="empty-subtitle">Tap + to create your first checklist — grocery runs, packing lists, and more.</div>
+          </div>`;
+        return;
+      }
+
+      content.innerHTML = lists.map((list, i) => {
+        const total = list.items.length;
+        const done = list.items.filter(it => it.checked).length;
+        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        const progressLabel = total === 0 ? 'No items yet' :
+          pct === 100 ? '✓ All done!' :
+          pct === 0 ? 'Not started' :
+          `${pct}% complete`;
+        return `
+          <div class="list-card" onclick="goDetail('${list.id}')" style="animation-delay:${i * 0.04}s">
+            <div class="list-card-accent"></div>
+            <div class="list-card-header">
+              <div class="list-card-name">${escHtml(list.name)}</div>
+              <div class="list-card-count">${done}/${total}</div>
+            </div>
+            <div class="list-card-progress">
+              <div class="progress-text${pct === 100 ? ' complete' : ''}">${progressLabel}</div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill" style="width:${pct}%"></div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Render Detail ──────────────────────────────────────────────────────────
+    function renderDetail() {
+      const list = lists.find(l => l.id === currentListId);
+      if (!list) return;
+
+      document.getElementById('detail-list-name').textContent = list.name;
+
+      const total = list.items.length;
+      const done = list.items.filter(it => it.checked).length;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      document.getElementById('detail-done').textContent = done;
+      document.getElementById('detail-total').textContent = total;
+      document.getElementById('detail-progress-fill').style.width = pct + '%';
+
+      const content = document.getElementById('detail-content');
+
+      if (total === 0) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">✍️</div>
+            <div class="empty-title">Nothing here yet</div>
+            <div class="empty-subtitle">Tap + to add your first item to this list.</div>
+          </div>`;
+        return;
+      }
+
+      const unchecked = list.items.filter(it => !it.checked);
+      const checked = list.items.filter(it => it.checked);
+
+      let html = unchecked.map((item, i) => itemHTML(item, i)).join('');
+
+      if (checked.length > 0) {
+        html += `<div class="items-section-header">Completed (${checked.length})</div>`;
+        html += checked.map((item, i) => itemHTML(item, unchecked.length + i)).join('');
+      }
+
+      content.innerHTML = html;
+    }
+
+    function itemHTML(item, idx) {
+      return `
+        <div class="checklist-item${item.checked ? ' is-checked' : ''}" id="item-${item.id}" style="animation-delay:${idx * 0.03}s">
+          <div class="item-main" onclick="toggleItem('${item.id}')">
+            <div class="item-checkbox">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div class="item-text">${escHtml(item.text)}</div>
+          </div>
+          <button class="item-delete" onclick="deleteItem('${item.id}')" title="Remove item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>`;
+    }
+
+    // ── Actions ────────────────────────────────────────────────────────────────
+    function toggleItem(itemId) {
+      const list = lists.find(l => l.id === currentListId);
+      const item = list && list.items.find(it => it.id === itemId);
+      if (!item) return;
+      item.checked = !item.checked;
+      save();
+      renderDetail();
+    }
+
+    function deleteItem(itemId) {
+      const list = lists.find(l => l.id === currentListId);
+      if (!list) return;
+      list.items = list.items.filter(it => it.id !== itemId);
+      save();
+      renderDetail();
+    }
+
+    function resetList() {
+      const list = lists.find(l => l.id === currentListId);
+      if (!list) return;
+      const anyChecked = list.items.some(it => it.checked);
+      if (!anyChecked) return;
+      list.items.forEach(it => { it.checked = false; });
+      save();
+      renderDetail();
+    }
+
+    function deleteCurrentList() {
+      const list = lists.find(l => l.id === currentListId);
+      if (!list) return;
+      showDialog(
+        'Delete List?',
+        `"${list.name}" and all its items will be permanently deleted.`,
+        () => {
+          lists = lists.filter(l => l.id !== currentListId);
+          save();
+          goHome();
+        }
+      );
+    }
+
+    // ── Bottom Sheet ───────────────────────────────────────────────────────────
+    function openAddSheet() {
+      if (currentListId) {
+        sheetMode = 'add-item';
+        document.getElementById('sheet-title').textContent = 'Add Item';
+        document.getElementById('sheet-confirm-btn').textContent = 'Add';
+        document.getElementById('sheet-input').placeholder = 'Enter item name…';
+      } else {
+        sheetMode = 'add-list';
+        document.getElementById('sheet-title').textContent = 'New List';
+        document.getElementById('sheet-confirm-btn').textContent = 'Create';
+        document.getElementById('sheet-input').placeholder = 'e.g. Grocery, Europe Trip…';
+      }
+      document.getElementById('sheet-input').value = '';
+      document.getElementById('sheet-overlay').classList.add('visible');
+      document.getElementById('bottom-sheet').classList.add('visible');
+      setTimeout(() => document.getElementById('sheet-input').focus(), 320);
+    }
+
+    function closeSheet() {
+      document.getElementById('sheet-overlay').classList.remove('visible');
+      document.getElementById('bottom-sheet').classList.remove('visible');
+      document.getElementById('sheet-input').blur();
+    }
+
+    function confirmSheet() {
+      const val = document.getElementById('sheet-input').value.trim();
+      if (!val) {
+        document.getElementById('sheet-input').focus();
+        return;
+      }
+
+      if (sheetMode === 'add-list') {
+        lists.unshift({ id: genId(), name: val, items: [], createdAt: Date.now() });
+        save();
+        closeSheet();
+        renderHome();
+      } else if (sheetMode === 'add-item') {
+        const list = lists.find(l => l.id === currentListId);
+        if (list) {
+          list.items.push({ id: genId(), text: val, checked: false });
+          save();
+          closeSheet();
+          renderDetail();
+        }
+      }
+    }
+
+    // ── Dialog ─────────────────────────────────────────────────────────────────
+    function showDialog(title, body, onConfirm) {
+      document.getElementById('dialog-title').textContent = title;
+      document.getElementById('dialog-body').textContent = body;
+      dialogCallback = onConfirm;
+      document.getElementById('dialog-overlay').classList.add('visible');
+      document.getElementById('dialog-confirm-btn').onclick = () => {
+        closeDialog();
+        if (dialogCallback) dialogCallback();
+      };
+    }
+
+    function closeDialog() {
+      document.getElementById('dialog-overlay').classList.remove('visible');
+      dialogCallback = null;
+    }
+
+    // ── Keyboard ───────────────────────────────────────────────────────────────
+    document.getElementById('sheet-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirmSheet();
+      if (e.key === 'Escape') closeSheet();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeDialog();
+        closeSheet();
+      }
+    });
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    load();
+    renderHome();
+  </script>
+</body>
+</html>

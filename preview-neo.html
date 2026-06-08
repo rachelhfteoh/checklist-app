@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Checklist — Neobrutalism Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font: 'Plus Jakarta Sans', sans-serif;
+      --black: #0d0d0d;
+      --white: #fffdf5;
+      --yellow: #ffe135;
+      --purple: #7c3aed;
+      --pink: #ff4d8d;
+      --green: #00c97a;
+      --border: 2.5px solid #0d0d0d;
+      --shadow: 4px 4px 0px #0d0d0d;
+      --shadow-sm: 3px 3px 0px #0d0d0d;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      background: var(--yellow);
+    }
+
+    #app {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      position: relative;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--yellow);
+    }
+
+    /* ── Views ── */
+    .view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--yellow);
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 52px 20px 16px;
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--black);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--black);
+      margin-top: 5px;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Content ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 20px 120px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── List cards ── */
+    .list-card {
+      background: var(--white);
+      border: var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 16px 16px 14px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      position: relative;
+      opacity: 0;
+      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .list-card:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0px var(--black);
+    }
+
+    .list-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .list-card-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--black);
+      flex: 1;
+    }
+
+    .list-card-count {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--white);
+      background: var(--black);
+      border-radius: 20px;
+      padding: 3px 10px;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: var(--black);
+      font-weight: 700;
+      margin-bottom: 7px;
+      opacity: 0.5;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .progress-text.complete {
+      color: var(--green);
+      opacity: 1;
+      font-weight: 800;
+    }
+
+    .progress-bar-track {
+      height: 8px;
+      background: #e8e3d0;
+      border-radius: 0;
+      border: 1.5px solid var(--black);
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--purple);
+    }
+
+    /* ── Accent tag on card ── */
+    .card-tag {
+      position: absolute;
+      top: -1px;
+      right: 16px;
+      background: var(--yellow);
+      border: var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      width: 24px;
+      height: 10px;
+    }
+
+    /* ── Detail view ── */
+    .detail-header-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--white);
+      border: var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow-sm);
+      padding: 7px 12px 7px 8px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--black);
+      flex-shrink: 0;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .back-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--black);
+    }
+
+    .detail-list-name {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--black);
+      letter-spacing: -0.5px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: var(--border);
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--black);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .icon-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--black);
+    }
+
+    /* ── Progress summary ── */
+    .detail-progress-summary {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--white);
+      border: var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      padding: 10px 14px;
+    }
+
+    .detail-progress-nums {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--black);
+      white-space: nowrap;
+    }
+
+    .detail-progress-nums .done-count {
+      color: var(--purple);
+    }
+
+    .detail-progress-bar-track {
+      flex: 1;
+      height: 8px;
+      background: #e8e3d0;
+      border: 1.5px solid var(--black);
+      overflow: hidden;
+    }
+
+    .detail-progress-bar-fill {
+      height: 100%;
+      background: var(--purple);
+    }
+
+    .reset-btn {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--black);
+      background: var(--yellow);
+      border: var(--border);
+      border-radius: 8px;
+      padding: 5px 11px;
+      cursor: pointer;
+      font-family: var(--font);
+      white-space: nowrap;
+      box-shadow: 2px 2px 0 var(--black);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .reset-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: none;
+    }
+
+    /* ── Checklist items ── */
+    .checklist-item {
+      background: var(--white);
+      border: var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      opacity: 0;
+      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .checklist-item.is-checked {
+      background: #f5f2e8;
+      opacity: 0.7;
+    }
+
+    .item-main {
+      display: flex;
+      align-items: center;
+      padding: 13px 12px 13px 14px;
+      flex: 1;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .item-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2.5px solid var(--black);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--white);
+    }
+
+    .checklist-item.is-checked .item-checkbox {
+      background: var(--purple);
+      border-color: var(--purple);
+    }
+
+    .item-checkbox svg { opacity: 0; }
+    .checklist-item.is-checked .item-checkbox svg { opacity: 1; }
+
+    .item-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--black);
+      flex: 1;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .checklist-item.is-checked .item-text {
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+
+    .item-delete {
+      width: 40px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #aaa;
+      padding: 0 12px 0 4px;
+    }
+
+    .items-section-header {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--black);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 12px 4px 8px;
+      opacity: 0.4;
+    }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: calc(28px + var(--safe-bottom));
+      right: 24px;
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      background: var(--black);
+      border: var(--border);
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .fab:active {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+    }
+
+    /* ── Preview label ── */
+    .preview-label {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--black);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--yellow);
+      z-index: 999;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Tabs ── */
+    .preview-tabs {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 999;
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: var(--border);
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--black);
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .tab-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--black);
+    }
+
+    .tab-btn.active {
+      background: var(--black);
+      color: var(--yellow);
+    }
+
+    /* ── Animations ── */
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.94) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @media (min-width: 600px) {
+      .fab { right: calc(50% - 240px + 24px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-label">◼ Neobrutalism Preview</div>
+
+  <div id="app">
+
+    <!-- HOME VIEW -->
+    <div class="view" id="home-view">
+      <div class="header">
+        <div class="header-title">My Lists</div>
+        <div class="header-subtitle">3 lists</div>
+      </div>
+      <div class="content">
+
+        <div class="list-card" style="animation-delay:0s">
+          <div class="card-tag"></div>
+          <div class="list-card-header">
+            <div class="list-card-name">🛒 Grocery</div>
+            <div class="list-card-count">2/5</div>
+          </div>
+          <div class="progress-text">40% complete</div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" style="width:40%"></div>
+          </div>
+        </div>
+
+        <div class="list-card" style="animation-delay:0.07s">
+          <div class="card-tag"></div>
+          <div class="list-card-header">
+            <div class="list-card-name">✈️ Europe Trip</div>
+            <div class="list-card-count">0/12</div>
+          </div>
+          <div class="progress-text">Not started</div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="list-card" style="animation-delay:0.14s">
+          <div class="card-tag"></div>
+          <div class="list-card-header">
+            <div class="list-card-name">🏥 Pharmacy</div>
+            <div class="list-card-count">3/3</div>
+          </div>
+          <div class="progress-text complete">✓ All done!</div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" style="width:100%"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div class="view" id="detail-view" style="display:none">
+      <div class="header">
+        <div class="detail-header-top">
+          <button class="back-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Lists
+          </button>
+          <div class="detail-list-name">🛒 Grocery</div>
+          <button class="icon-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+            </svg>
+          </button>
+        </div>
+        <div class="detail-progress-summary">
+          <div class="detail-progress-nums"><span class="done-count">2</span> / 5 done</div>
+          <div class="detail-progress-bar-track">
+            <div class="detail-progress-bar-fill" style="width:40%"></div>
+          </div>
+          <button class="reset-btn">Reset</button>
+        </div>
+      </div>
+      <div class="content">
+
+        <div class="checklist-item" style="animation-delay:0s">
+          <div class="item-main">
+            <div class="item-checkbox">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="item-text">Eggs</div>
+          </div>
+          <button class="item-delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="checklist-item" style="animation-delay:0.05s">
+          <div class="item-main">
+            <div class="item-checkbox"></div>
+            <div class="item-text">Butter</div>
+          </div>
+          <button class="item-delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="checklist-item" style="animation-delay:0.1s">
+          <div class="item-main">
+            <div class="item-checkbox"></div>
+            <div class="item-text">Orange juice</div>
+          </div>
+          <button class="item-delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="items-section-header">Completed (2)</div>
+
+        <div class="checklist-item is-checked" style="animation-delay:0.15s">
+          <div class="item-main">
+            <div class="item-checkbox">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="item-text">Milk</div>
+          </div>
+          <button class="item-delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div class="checklist-item is-checked" style="animation-delay:0.2s">
+          <div class="item-main">
+            <div class="item-checkbox">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="item-text">Bread</div>
+          </div>
+          <button class="item-delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffe135" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+  <!-- Preview tabs -->
+  <div class="preview-tabs">
+    <button class="tab-btn active" onclick="showView('home')">Home</button>
+    <button class="tab-btn" onclick="showView('detail')">List Detail</button>
+  </div>
+
+  <script>
+    function showView(v) {
+      document.getElementById('home-view').style.display = v === 'home' ? 'flex' : 'none';
+      document.getElementById('detail-view').style.display = v === 'detail' ? 'flex' : 'none';
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0 && v === 'home') || (i === 1 && v === 'detail'));
+      });
+    }
+  </script>
+</body>
+</html>
