@@ -892,7 +892,10 @@
         const inp = document.getElementById('inline-add-input');
         if (inp) {
           inp.addEventListener('keydown', e => {
-            if (e.key === 'Enter') saveInlineItem();
+            if (e.key === 'Enter') {
+              if (inp.value.trim()) saveInlineItem();
+              else exitEditMode();
+            }
             if (e.key === 'Escape') exitEditMode();
           });
         }
@@ -1035,11 +1038,31 @@
       if (!val) return;
       const list = lists.find(l => l.id === currentListId);
       if (!list) return;
-      list.items.push({ id: genId(), text: val, checked: false });
+      const newItem = { id: genId(), text: val, checked: false };
+      list.items.push(newItem);
       save();
       inp.value = '';
-      renderDetail();
-      setTimeout(() => { const ni = document.getElementById('inline-add-input'); if (ni) ni.focus(); }, 60);
+      inp.focus(); // keep keyboard open — safe here since we're inside a user gesture
+
+      // Insert item into DOM above the add row (no full re-render = keyboard stays up on iOS)
+      const addRow = document.getElementById('add-inline-row');
+      if (addRow) {
+        const idx = list.items.filter(it => !it.checked).length - 1;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = itemHTML(newItem, idx, true).trim();
+        addRow.parentNode.insertBefore(tempDiv.firstElementChild, addRow);
+      }
+
+      // Update progress bar counts
+      const total = list.items.length;
+      const done = list.items.filter(it => it.checked).length;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      const doneEl = document.getElementById('detail-done');
+      const totalEl = document.getElementById('detail-total');
+      const fillEl = document.getElementById('detail-progress-fill');
+      if (doneEl) doneEl.textContent = done;
+      if (totalEl) totalEl.textContent = total;
+      if (fillEl) fillEl.style.width = pct + '%';
     }
 
     function setupEditDragListeners() {
