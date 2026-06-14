@@ -10,7 +10,7 @@
 
 ### Technical gotchas
 - **FAB gradient had explicit `0%` and `100%` stop markers** — `replace_all` on plain gradient strings didn't catch it. Always grep for both forms when updating colours across a file
-- **Preview server stops when Claude Code goes idle** — local `localhost:3456` links only work while the session is active. Remind Rachel to restart with `/start` next session if links are dead
+- **Preview server stops when Claude Code goes idle** — local `localhost:3456` links only work while the session is active. At the start of each session, the server must be restarted (Claude Code does this automatically via `.claude/launch.json`). If the link is dead mid-session, ask Claude to restart it. `localhost` only works on the Mac — phones need the local IP (`192.168.x.x:3456`) and must be on the same Wi-Fi. Permanent fix: deploy to GitHub Pages so no server is needed
 - Git repo was not initialised at session start — remember to `git init` on new projects before first commit
 
 ### UX decisions

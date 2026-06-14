@@ -15,9 +15,7 @@
 
     :root {
       --purple: #7c3aed;
-      --indigo: #6366f1;
       --gradient: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
-      --bg: #f4f4f7;
       --bg-gradient: linear-gradient(150deg, #fdf4ff 0%, #eef2ff 45%, #f0fdfa 100%);
       --card: #ffffff;
       --card-shadow: 0 2px 14px rgba(99,102,241,0.09);
@@ -33,10 +31,7 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
-    html, body {
-      height: 100%;
-      overflow: hidden;
-    }
+    html, body { height: 100%; overflow: hidden; }
 
     body {
       font-family: var(--font);
@@ -53,672 +48,422 @@
       position: relative;
     }
 
-    /* Views */
+    /* ── Views ─────────────────────────────────────────────── */
     .view {
       position: absolute;
       inset: 0;
       display: flex;
       flex-direction: column;
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
       overflow: hidden;
       background: var(--bg-gradient);
       background-attachment: fixed;
     }
 
-    #home-view {
-      transform: translateX(0);
-      opacity: 1;
-      z-index: 1;
-    }
+    #home-view { transform: translateX(0); opacity: 1; z-index: 1; }
+    #home-view.slide-out { transform: translateX(-28%); opacity: 0; pointer-events: none; }
+    #detail-view { transform: translateX(100%); opacity: 0; z-index: 2; }
+    #detail-view.slide-in { transform: translateX(0); opacity: 1; }
 
-    #home-view.slide-out {
-      transform: translateX(-28%);
-      opacity: 0;
-      pointer-events: none;
-    }
+    /* ── Header ────────────────────────────────────────────── */
+    .header { padding: 52px 20px 16px; flex-shrink: 0; }
 
-    #detail-view {
-      transform: translateX(100%);
-      opacity: 0;
-      z-index: 2;
-    }
-
-    #detail-view.slide-in {
-      transform: translateX(0);
-      opacity: 1;
-    }
-
-    /* Header */
-    .header {
-      padding: 52px 20px 16px;
-      flex-shrink: 0;
-    }
-
-    .header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .header-title {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.5px;
-    }
-
-    .header-subtitle {
-      font-size: 14px;
-      color: var(--text-secondary);
-      font-weight: 500;
-      margin-top: 2px;
-    }
+    .header-title { font-size: 28px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+    .header-subtitle { font-size: 14px; color: var(--text-secondary); font-weight: 500; margin-top: 2px; }
 
     .back-btn {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--card);
-      border: none;
-      border-radius: 12px;
-      padding: 8px 14px 8px 10px;
-      cursor: pointer;
-      font-family: var(--font);
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--purple);
-      box-shadow: var(--card-shadow);
-      transition: opacity 0.15s;
-      flex-shrink: 0;
+      display: flex; align-items: center; gap: 4px;
+      background: var(--card); border: none; border-radius: 12px;
+      padding: 8px 14px 8px 10px; cursor: pointer;
+      font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--purple);
+      box-shadow: var(--card-shadow); transition: opacity 0.15s; flex-shrink: 0;
     }
-
     .back-btn:active { opacity: 0.7; }
 
-    /* Scrollable content */
-    .content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 20px 120px;
-      -webkit-overflow-scrolling: touch;
-    }
+    .content { flex: 1; overflow-y: auto; padding: 8px 20px 120px; -webkit-overflow-scrolling: touch; }
 
-    /* List cards on home */
-    .list-card {
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: var(--card-shadow);
-      padding: 18px 18px 14px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    /* ── Swipeable wrapper ─────────────────────────────────── */
+    .swipeable {
       position: relative;
       overflow: hidden;
+      border-radius: 14px;
+      margin-bottom: 10px;
       opacity: 0;
       animation: slideUp 0.3s ease forwards;
     }
 
-    .list-card:active {
-      transform: scale(0.985);
-      box-shadow: 0 1px 6px rgba(99,102,241,0.06);
+    .swipe-inner {
+      position: relative;
+      z-index: 1;
+      transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+      will-change: transform;
+      cursor: pointer;
     }
 
-    .list-card-accent {
+    .swipe-btns {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
+      top: 0; right: 0;
       height: 100%;
-      background: var(--gradient);
-      border-radius: 16px 0 0 16px;
+      display: flex;
+      align-items: stretch;
+      z-index: 0;
+    }
+
+    .swipe-btn {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px; padding: 0;
+      color: white; border: none; cursor: pointer;
+      font-family: var(--font); font-size: 11px; font-weight: 700;
+      width: 76px; flex-shrink: 0; line-height: 1.2;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .swipe-btn:active { filter: brightness(0.9); }
+    .swipe-hide { background: #6366f1; }
+    .swipe-restore { background: var(--success); }
+    .swipe-delete { background: var(--danger); }
+
+    /* ── List card ─────────────────────────────────────────── */
+    .list-card {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: var(--card-shadow);
+      padding: 12px 14px 10px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .swipe-inner:active .list-card { transform: scale(0.985); }
+
+    .list-card-accent {
+      position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%;
+      border-radius: 14px 0 0 14px;
     }
 
     .list-card-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      padding-left: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px; padding-left: 12px;
     }
 
-    .list-card-name {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-primary);
-      flex: 1;
-      word-break: break-word;
-    }
-
+    .list-card-name { font-size: 15px; font-weight: 700; color: var(--text-primary); flex: 1; word-break: break-word; }
     .list-card-count {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--purple);
-      background: var(--selected);
-      border-radius: 20px;
-      padding: 3px 10px;
-      margin-left: 10px;
-      flex-shrink: 0;
+      font-size: 12px; font-weight: 600;
+      border-radius: 20px; padding: 3px 10px;
+      margin-left: 10px; flex-shrink: 0;
     }
 
-    .list-card-progress {
-      padding-left: 12px;
-    }
+    .list-card-progress { padding-left: 12px; }
 
-    .progress-text {
-      font-size: 12px;
-      color: var(--text-tertiary);
-      font-weight: 500;
-      margin-bottom: 6px;
-    }
-
-    .progress-text.complete {
-      color: var(--success);
-      font-weight: 600;
-    }
-
-    .progress-bar-track {
-      height: 4px;
-      background: #f3f4f6;
-      border-radius: 4px;
+    /* ── Folder card ───────────────────────────────────────── */
+    .folder-card {
+      border-radius: 14px;
+      box-shadow: var(--card-shadow);
       overflow: hidden;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .swipe-inner:active .folder-card { transform: scale(0.985); }
+
+    .folder-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+    }
+
+    .folder-icon { flex-shrink: 0; opacity: 0.9; }
+
+    .folder-header-name {
+      font-size: 14px; font-weight: 700; color: white;
+      flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .folder-count-badge {
+      font-size: 11px; font-weight: 700;
+      background: rgba(255,255,255,0.25);
+      border-radius: 20px; padding: 2px 9px;
+      color: white; flex-shrink: 0;
+    }
+
+    .folder-progress-track {
+      height: 3px;
+    }
+
+    .folder-progress-fill {
+      height: 100%;
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ── Completed section ─────────────────────────────────── */
+    .section-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--text-tertiary);
+      padding: 16px 4px 8px;
+    }
+
+    .completed-card {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .completed-card .list-card-name {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+    }
+
+    .completed-actions {
+      display: flex; gap: 6px; align-items: center; flex-shrink: 0; margin-left: 8px;
+    }
+
+    .btn-restore {
+      width: 30px; height: 30px; border-radius: 8px; border: none;
+      background: #dcfce7; color: #16a34a; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.15s;
+    }
+
+    .btn-delete-sm {
+      width: 30px; height: 30px; border-radius: 8px; border: none;
+      background: #fee2e2; color: #ef4444; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.15s;
+    }
+
+    .btn-restore:active, .btn-delete-sm:active { opacity: 0.7; }
+
+    /* ── Progress bar (shared) ─────────────────────────────── */
+    .progress-bar-track {
+      height: 3px; background: #f3f4f6; border-radius: 4px; overflow: hidden;
     }
 
     .progress-bar-fill {
-      height: 100%;
-      background: var(--gradient);
-      border-radius: 4px;
-      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      height: 100%; border-radius: 4px;
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
     }
 
-    /* Empty state */
+    /* ── Empty state ───────────────────────────────────────── */
     .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 32px;
-      text-align: center;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 60px 32px; text-align: center;
       animation: slideUp 0.35s ease forwards;
     }
-
     .empty-icon {
-      width: 80px;
-      height: 80px;
-      background: var(--selected);
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      font-size: 36px;
+      width: 80px; height: 80px; background: var(--selected); border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px; font-size: 36px;
     }
+    .empty-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .empty-subtitle { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
 
-    .empty-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    .empty-subtitle {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    /* Detail header */
+    /* ── Detail header ─────────────────────────────────────── */
     .detail-header-top {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 8px;
+      display: flex; align-items: center; margin-bottom: 12px; gap: 8px;
     }
 
     .detail-list-name {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.3px;
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      font-size: 22px; font-weight: 800; color: var(--text-primary);
+      letter-spacing: -0.3px; flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      cursor: pointer;
+      border-bottom: 1.5px dashed rgba(124,58,237,0.3);
+      padding-bottom: 1px;
     }
+    .detail-list-name:active { opacity: 0.7; }
 
-    .detail-header-actions {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
-    }
+    .detail-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
     .icon-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      border: none;
-      background: var(--card);
-      box-shadow: var(--card-shadow);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-secondary);
-      transition: opacity 0.15s, color 0.15s;
+      width: 38px; height: 38px; border-radius: 12px; border: none;
+      background: var(--card); box-shadow: var(--card-shadow); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); transition: opacity 0.15s, color 0.15s;
     }
-
     .icon-btn:active { opacity: 0.7; }
-    .icon-btn.danger:hover { color: var(--danger); }
-    .icon-btn.danger:active { color: var(--danger); }
+    .icon-btn.danger:hover, .icon-btn.danger:active { color: var(--danger); }
 
-    /* Progress summary bar */
     .detail-progress-summary {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--card);
-      border-radius: 14px;
-      padding: 11px 14px;
-      box-shadow: var(--card-shadow);
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card); border-radius: 14px;
+      padding: 11px 14px; box-shadow: var(--card-shadow);
     }
 
-    .detail-progress-nums {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
-
-    .detail-progress-nums .done-count {
-      color: var(--purple);
-      font-weight: 800;
-    }
+    .detail-progress-nums { font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+    .detail-progress-nums .done-count { color: var(--purple); font-weight: 800; }
 
     .detail-progress-bar-track {
-      flex: 1;
-      height: 6px;
-      background: #f3f4f6;
-      border-radius: 6px;
-      overflow: hidden;
+      flex: 1; height: 6px; background: #f3f4f6; border-radius: 6px; overflow: hidden;
     }
-
     .detail-progress-bar-fill {
-      height: 100%;
-      background: var(--gradient);
-      border-radius: 6px;
-      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      height: 100%; background: var(--gradient); border-radius: 6px;
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
     }
 
     .reset-btn {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--purple);
-      background: var(--selected);
-      border: none;
-      border-radius: 10px;
-      padding: 6px 12px;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: opacity 0.15s;
-      white-space: nowrap;
+      font-size: 12px; font-weight: 700; color: var(--purple); background: var(--selected);
+      border: none; border-radius: 10px; padding: 6px 12px;
+      cursor: pointer; font-family: var(--font); transition: opacity 0.15s; white-space: nowrap;
     }
-
     .reset-btn:active { opacity: 0.7; }
 
-    /* Checklist items */
+    /* ── Checklist items ───────────────────────────────────── */
     .checklist-item {
-      background: var(--card);
-      border-radius: 14px;
-      box-shadow: var(--card-shadow);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-      position: relative;
-      opacity: 0;
-      animation: slideUp 0.3s ease forwards;
+      background: var(--card); border-radius: 14px; box-shadow: var(--card-shadow);
+      margin-bottom: 8px; display: flex; align-items: center; overflow: hidden;
+      position: relative; opacity: 0; animation: slideUp 0.3s ease forwards;
       transition: opacity 0.2s ease;
     }
-
-    .checklist-item.is-checked {
-      opacity: 0.6;
-    }
+    .checklist-item.is-checked { opacity: 0.6; }
 
     .item-main {
-      display: flex;
-      align-items: center;
-      padding: 14px 12px 14px 16px;
-      flex: 1;
-      min-width: 0;
-      cursor: pointer;
-      gap: 12px;
+      display: flex; align-items: center;
+      padding: 14px 12px 14px 16px; flex: 1; min-width: 0;
+      cursor: pointer; gap: 12px;
     }
 
     .item-checkbox {
-      width: 24px;
-      height: 24px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      background: white;
+      width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--border);
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease; background: white;
     }
-
-    .checklist-item.is-checked .item-checkbox {
-      background: var(--gradient);
-      border-color: transparent;
-    }
-
-    .item-checkbox svg {
-      opacity: 0;
-      transform: scale(0.4);
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .checklist-item.is-checked .item-checkbox svg {
-      opacity: 1;
-      transform: scale(1);
-    }
+    .checklist-item.is-checked .item-checkbox { background: var(--gradient); border-color: transparent; }
+    .item-checkbox svg { opacity: 0; transform: scale(0.4); transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+    .checklist-item.is-checked .item-checkbox svg { opacity: 1; transform: scale(1); }
 
     .item-text {
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--text-primary);
-      flex: 1;
-      min-width: 0;
-      word-break: break-word;
-      transition: all 0.2s ease;
-      line-height: 1.4;
+      font-size: 15px; font-weight: 500; color: var(--text-primary);
+      flex: 1; min-width: 0; word-break: break-word; transition: all 0.2s ease; line-height: 1.4;
     }
-
-    .checklist-item.is-checked .item-text {
-      text-decoration: line-through;
-      color: var(--text-tertiary);
-    }
+    .checklist-item.is-checked .item-text { text-decoration: line-through; color: var(--text-tertiary); }
 
     .item-delete {
-      width: 40px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-tertiary);
-      transition: color 0.15s;
-      flex-shrink: 0;
-      padding: 0 12px 0 4px;
+      width: 40px; height: 44px; display: flex; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer; color: var(--text-tertiary);
+      transition: color 0.15s; flex-shrink: 0; padding: 0 12px 0 4px;
     }
-
     .item-delete:hover, .item-delete:active { color: var(--danger); }
 
-    /* Section header for checked items */
     .items-section-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-tertiary);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      padding: 12px 4px 8px;
+      font-size: 12px; font-weight: 700; color: var(--text-tertiary);
+      text-transform: uppercase; letter-spacing: 0.6px; padding: 12px 4px 8px;
     }
 
-    /* FAB */
+    /* ── FAB ───────────────────────────────────────────────── */
     .fab {
-      position: fixed;
-      bottom: calc(28px + var(--safe-bottom));
-      right: 24px;
-      width: 58px;
-      height: 58px;
-      border-radius: 18px;
-      background: var(--gradient);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; bottom: calc(28px + var(--safe-bottom)); right: 24px;
+      width: 58px; height: 58px; border-radius: 18px;
+      background: var(--gradient); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
       box-shadow: var(--fab-shadow);
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
       z-index: 100;
     }
+    .fab:active { transform: scale(0.91); box-shadow: 0 2px 10px rgba(124,58,237,0.3); }
 
-    .fab:active {
-      transform: scale(0.91);
-      box-shadow: 0 2px 10px rgba(124,58,237,0.3);
-    }
-
-    /* Bottom Sheet */
+    /* ── Bottom sheet ──────────────────────────────────────── */
     .sheet-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.42);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      z-index: 200;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      pointer-events: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.42);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      z-index: 200; opacity: 0; transition: opacity 0.25s ease; pointer-events: none;
     }
-
-    .sheet-overlay.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .sheet-overlay.visible { opacity: 1; pointer-events: auto; }
 
     .bottom-sheet {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--card);
-      border-radius: 24px 24px 0 0;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--card); border-radius: 24px 24px 0 0;
       padding: 20px 20px calc(24px + var(--safe-bottom));
-      z-index: 201;
-      transform: translateY(100%);
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 201; transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
       box-shadow: 0 -4px 32px rgba(99,102,241,0.1);
     }
+    .bottom-sheet.visible { transform: translateY(0); }
 
-    .bottom-sheet.visible {
-      transform: translateY(0);
-    }
+    .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 20px; }
+    .sheet-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; }
 
-    .sheet-handle {
-      width: 40px;
-      height: 4px;
-      background: var(--border);
-      border-radius: 4px;
-      margin: 0 auto 20px;
+    .sheet-type-picker { display: flex; gap: 10px; margin-bottom: 14px; }
+    .type-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 11px; border-radius: 12px; border: 2px solid var(--border);
+      background: #f9fafb; font-family: var(--font); font-size: 14px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.18s ease;
     }
-
-    .sheet-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 16px;
-    }
+    .type-btn.active { border-color: var(--purple); background: var(--selected); color: var(--purple); }
 
     .sheet-input {
-      width: 100%;
-      background: #f9fafb;
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 16px;
-      font-family: var(--font);
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--text-primary);
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
-      margin-bottom: 14px;
+      width: 100%; background: #f9fafb; border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 14px 16px; font-family: var(--font);
+      font-size: 16px; font-weight: 500; color: var(--text-primary); outline: none;
+      transition: border-color 0.2s, background 0.2s; margin-bottom: 14px;
     }
-
-    .sheet-input:focus {
-      border-color: var(--purple);
-      background: white;
-    }
-
+    .sheet-input:focus { border-color: var(--purple); background: white; }
     .sheet-input::placeholder { color: var(--text-tertiary); }
 
-    .sheet-actions {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 10px;
-    }
+    .sheet-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
 
     .btn-cancel {
-      background: #f3f4f6;
-      border: none;
-      border-radius: 14px;
-      padding: 14px;
-      font-family: var(--font);
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: opacity 0.15s;
+      background: #f3f4f6; border: none; border-radius: 14px; padding: 14px;
+      font-family: var(--font); font-size: 15px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; transition: opacity 0.15s;
     }
-
     .btn-confirm {
-      background: var(--gradient);
-      border: none;
-      border-radius: 14px;
-      padding: 14px;
-      font-family: var(--font);
-      font-size: 15px;
-      font-weight: 700;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 2px 12px rgba(124,58,237,0.3);
+      background: var(--gradient); border: none; border-radius: 14px; padding: 14px;
+      font-family: var(--font); font-size: 15px; font-weight: 700; color: white;
+      cursor: pointer; box-shadow: 0 2px 12px rgba(124,58,237,0.3);
       transition: opacity 0.15s, transform 0.15s;
     }
-
     .btn-cancel:active { opacity: 0.75; }
     .btn-confirm:active { opacity: 0.85; transform: scale(0.98); }
 
-    /* Confirm Dialog */
+    /* ── Dialog ────────────────────────────────────────────── */
     .dialog-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.42);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      z-index: 300;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      pointer-events: none;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.42);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      z-index: 300; display: flex; align-items: center; justify-content: center;
+      padding: 24px; opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
     }
-
-    .dialog-overlay.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .dialog-overlay.visible { opacity: 1; pointer-events: auto; }
 
     .dialog {
-      background: var(--card);
-      border-radius: 20px;
-      padding: 24px;
-      width: 100%;
-      max-width: 320px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
-      transform: scale(0.9);
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: var(--card); border-radius: 20px; padding: 24px;
+      width: 100%; max-width: 320px; box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+      transform: scale(0.9); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
     }
-
-    .dialog-overlay.visible .dialog {
-      transform: scale(1);
-    }
+    .dialog-overlay.visible .dialog { transform: scale(1); }
 
     .dialog-icon {
-      width: 48px;
-      height: 48px;
-      background: #fef2f2;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 14px;
+      width: 48px; height: 48px; background: #fef2f2; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
     }
-
-    .dialog-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 8px;
-    }
-
-    .dialog-body {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-
-    .dialog-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+    .dialog-title { font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .dialog-body { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+    .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
     .btn-dialog-cancel {
-      background: #f3f4f6;
-      border: none;
-      border-radius: 12px;
-      padding: 13px;
-      font-family: var(--font);
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: opacity 0.15s;
+      background: #f3f4f6; border: none; border-radius: 12px; padding: 13px;
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; transition: opacity 0.15s;
     }
-
     .btn-dialog-confirm {
-      background: var(--danger);
-      border: none;
-      border-radius: 12px;
-      padding: 13px;
-      font-family: var(--font);
-      font-size: 14px;
-      font-weight: 700;
-      color: white;
-      cursor: pointer;
-      transition: opacity 0.15s;
+      background: var(--danger); border: none; border-radius: 12px; padding: 13px;
+      font-family: var(--font); font-size: 14px; font-weight: 700; color: white;
+      cursor: pointer; transition: opacity 0.15s;
     }
-
     .btn-dialog-cancel:active, .btn-dialog-confirm:active { opacity: 0.75; }
 
-    /* Animations */
+    /* ── Animations ────────────────────────────────────────── */
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Desktop */
+    /* ── Desktop ───────────────────────────────────────────── */
     @media (min-width: 600px) {
       body { display: flex; justify-content: center; align-items: stretch; }
-
-      #app {
-        width: 100%;
-        max-width: 480px;
-        box-shadow: 0 0 80px rgba(99,102,241,0.1);
-      }
-
-      .fab {
-        right: calc(50% - 240px + 24px);
-      }
-
-      .bottom-sheet {
-        left: calc(50% - 240px);
-        right: calc(50% - 240px);
-      }
+      #app { width: 100%; max-width: 480px; box-shadow: 0 0 80px rgba(99,102,241,0.1); }
+      .fab { right: calc(50% - 240px + 24px); }
+      .bottom-sheet { left: calc(50% - 240px); right: calc(50% - 240px); }
     }
   </style>
 </head>
@@ -728,12 +473,8 @@
     <!-- HOME VIEW -->
     <div class="view" id="home-view">
       <div class="header">
-        <div class="header-top">
-          <div>
-            <div class="header-title">My Lists</div>
-            <div class="header-subtitle" id="home-subtitle">0 lists</div>
-          </div>
-        </div>
+        <div class="header-title">My Lists</div>
+        <div class="header-subtitle" id="home-subtitle">0 items</div>
       </div>
       <div class="content" id="home-content"></div>
     </div>
@@ -746,9 +487,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
             Lists
           </button>
-          <div class="detail-list-name" id="detail-list-name"></div>
+          <div class="detail-list-name" id="detail-list-name" onclick="openRenameSheet()"></div>
           <div class="detail-header-actions">
-            <button class="icon-btn danger" onclick="deleteCurrentList()" title="Delete list">
+            <button class="icon-btn danger" onclick="deleteCurrentList()" title="Delete">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
@@ -774,7 +515,7 @@
   </div>
 
   <!-- FAB -->
-  <button class="fab" id="fab" onclick="openAddSheet()">
+  <button class="fab" onclick="openAddSheet()">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"/>
       <line x1="5" y1="12" x2="19" y2="12"/>
@@ -785,7 +526,24 @@
   <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
   <div class="bottom-sheet" id="bottom-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-title">New List</div>
+    <div class="sheet-title" id="sheet-title">New</div>
+    <div class="sheet-type-picker" id="sheet-type-picker">
+      <button class="type-btn" id="type-btn-folder" onclick="selectSheetType('folder')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+        </svg>
+        Folder
+      </button>
+      <button class="type-btn active" id="type-btn-list" onclick="selectSheetType('list')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        List
+      </button>
+    </div>
     <input class="sheet-input" id="sheet-input" placeholder="Enter name…" maxlength="80" autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="sheet-actions">
       <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
@@ -804,7 +562,7 @@
           <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
         </svg>
       </div>
-      <div class="dialog-title" id="dialog-title">Delete List?</div>
+      <div class="dialog-title" id="dialog-title">Delete?</div>
       <div class="dialog-body" id="dialog-body">This action cannot be undone.</div>
       <div class="dialog-actions">
         <button class="btn-dialog-cancel" onclick="closeDialog()">Cancel</button>
@@ -817,20 +575,46 @@
     // ── State ──────────────────────────────────────────────────────────────────
     let lists = [];
     let currentListId = null;
-    let sheetMode = null; // 'add-list' | 'add-item'
+    let sheetMode = null;
+    let sheetType = 'list';
     let dialogCallback = null;
+    let openSwipeId = null;
 
-    // ── Storage ────────────────────────────────────────────────────────────────
-    function save() {
-      localStorage.setItem('checklist_v1', JSON.stringify(lists));
+    // ── Colour palette ─────────────────────────────────────────────────────────
+    const COLORS = [
+      { from: '#7c3aed', to: '#6366f1', bg: '#faf5ff', badge: '#ede9fe', text: '#7c3aed' },
+      { from: '#e11d48', to: '#f43f5e', bg: '#fff1f2', badge: '#ffe4e6', text: '#e11d48' },
+      { from: '#0d9488', to: '#06b6d4', bg: '#f0fdfa', badge: '#ccfbf1', text: '#0d9488' },
+      { from: '#ea580c', to: '#f97316', bg: '#fff7ed', badge: '#ffedd5', text: '#ea580c' },
+      { from: '#2563eb', to: '#3b82f6', bg: '#eff6ff', badge: '#dbeafe', text: '#2563eb' },
+      { from: '#9333ea', to: '#d946ef', bg: '#fdf4ff', badge: '#fae8ff', text: '#9333ea' },
+      { from: '#16a34a', to: '#22c55e', bg: '#f0fdf4', badge: '#dcfce7', text: '#16a34a' },
+      { from: '#d97706', to: '#f59e0b', bg: '#fffbeb', badge: '#fef3c7', text: '#d97706' },
+    ];
+
+    function getColor(list) {
+      return COLORS[(list.colorIdx ?? 0) % COLORS.length];
     }
 
+    function isDone(list) {
+      return list.items.length > 0 && list.items.every(it => it.checked);
+    }
+
+    function isCompleted(list) {
+      return list.archived || isDone(list);
+    }
+
+    // ── Storage ────────────────────────────────────────────────────────────────
+    function save() { localStorage.setItem('checklist_v1', JSON.stringify(lists)); }
+
     function load() {
-      try {
-        lists = JSON.parse(localStorage.getItem('checklist_v1')) || [];
-      } catch {
-        lists = [];
-      }
+      try { lists = JSON.parse(localStorage.getItem('checklist_v1')) || []; }
+      catch { lists = []; }
+      lists.forEach((l, i) => {
+        if (!l.type) l.type = 'list';
+        if (l.colorIdx === undefined) l.colorIdx = i % COLORS.length;
+        if (l.archived === undefined) l.archived = false;
+      });
     }
 
     function genId() {
@@ -839,6 +623,7 @@
 
     // ── Navigation ─────────────────────────────────────────────────────────────
     function goHome() {
+      openSwipeId = null;
       document.getElementById('home-view').classList.remove('slide-out');
       document.getElementById('detail-view').classList.remove('slide-in');
       currentListId = null;
@@ -846,6 +631,7 @@
     }
 
     function goDetail(listId) {
+      if (openSwipeId) { closeAllSwipes(); return; }
       currentListId = listId;
       renderDetail();
       document.getElementById('home-view').classList.add('slide-out');
@@ -856,43 +642,104 @@
     function renderHome() {
       const subtitle = document.getElementById('home-subtitle');
       const content = document.getElementById('home-content');
+      const total = lists.length;
 
-      subtitle.textContent = lists.length === 0 ? 'No lists yet' :
-        lists.length === 1 ? '1 list' : `${lists.length} lists`;
+      subtitle.textContent = total === 0 ? 'No lists yet' :
+        total === 1 ? '1 item' : `${total} items`;
 
-      if (lists.length === 0) {
+      if (total === 0) {
         content.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">📋</div>
-            <div class="empty-title">No lists yet</div>
-            <div class="empty-subtitle">Tap + to create your first checklist — grocery runs, packing lists, and more.</div>
+            <div class="empty-title">Nothing here yet</div>
+            <div class="empty-subtitle">Tap + to create a folder or list.</div>
           </div>`;
         return;
       }
 
-      content.innerHTML = lists.map((list, i) => {
-        const total = list.items.length;
-        const done = list.items.filter(it => it.checked).length;
-        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-        const progressLabel = total === 0 ? 'No items yet' :
-          pct === 100 ? '✓ All done!' :
-          pct === 0 ? 'Not started' :
-          `${pct}% complete`;
+      const active = lists.filter(l => !isCompleted(l));
+      const done = lists.filter(l => isCompleted(l));
+
+      let html = active.map((list, i) => cardHTML(list, i, false)).join('');
+
+      if (done.length > 0) {
+        html += `<div class="section-label">Completed (${done.length})</div>`;
+        html += done.map((list, i) => cardHTML(list, i, true)).join('');
+      }
+
+      content.innerHTML = html;
+      openSwipeId = null;
+    }
+
+    function cardHTML(list, i, completed) {
+      const c = getColor(list);
+      const grad = `linear-gradient(135deg, ${c.from} 0%, ${c.to} 100%)`;
+      const done = list.items.filter(it => it.checked).length;
+      const count = list.items.length;
+      const pct = count > 0 ? Math.round((done / count) * 100) : 0;
+      const delay = `animation-delay:${i * 0.04}s`;
+
+      // ── Completed card: plain card with inline action buttons ──
+      if (completed) {
         return `
-          <div class="list-card" onclick="goDetail('${list.id}')" style="animation-delay:${i * 0.04}s">
-            <div class="list-card-accent"></div>
+          <div class="list-card completed-card" id="sw-${list.id}" style="${delay}">
+            <div class="list-card-accent" style="background:${grad}"></div>
             <div class="list-card-header">
               <div class="list-card-name">${escHtml(list.name)}</div>
-              <div class="list-card-count">${done}/${total}</div>
+              <div class="completed-actions">
+                <button class="btn-restore" onclick="restoreList('${list.id}')" title="Restore">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.36"/></svg>
+                </button>
+                <button class="btn-delete-sm" onclick="deleteListById('${list.id}')" title="Delete">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="list-card-progress">
-              <div class="progress-text${pct === 100 ? ' complete' : ''}">${progressLabel}</div>
               <div class="progress-bar-track">
-                <div class="progress-bar-fill" style="width:${pct}%"></div>
+                <div class="progress-bar-fill" style="width:${pct}%;background:${grad}"></div>
               </div>
             </div>
           </div>`;
-      }).join('');
+      }
+
+      // ── Active card: swipeable with hide + delete ──
+      return `
+        <div class="swipeable" id="sw-${list.id}" data-id="${list.id}" style="${delay}">
+          <div class="swipe-inner">
+            <div class="list-card" onclick="goDetail('${list.id}')">
+              <div class="list-card-accent" style="background:${grad}"></div>
+              <div class="list-card-header">
+                <div class="list-card-name">${escHtml(list.name)}</div>
+                <div class="list-card-count" style="background:${c.badge};color:${c.text}">${done}/${count}</div>
+              </div>
+              <div class="list-card-progress">
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" style="width:${pct}%;background:${grad}"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="swipe-btns">
+            <button class="swipe-btn swipe-hide" onclick="archiveList('${list.id}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              Hide
+            </button>
+            <button class="swipe-btn swipe-delete" onclick="deleteListById('${list.id}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>`;
     }
 
     // ── Render Detail ──────────────────────────────────────────────────────────
@@ -917,22 +764,22 @@
           <div class="empty-state">
             <div class="empty-icon">✍️</div>
             <div class="empty-title">Nothing here yet</div>
-            <div class="empty-subtitle">Tap + to add your first item to this list.</div>
+            <div class="empty-subtitle">Tap + to add your first item.</div>
           </div>`;
         return;
       }
 
       const unchecked = list.items.filter(it => !it.checked);
       const checked = list.items.filter(it => it.checked);
-
       let html = unchecked.map((item, i) => itemHTML(item, i)).join('');
-
       if (checked.length > 0) {
         html += `<div class="items-section-header">Completed (${checked.length})</div>`;
         html += checked.map((item, i) => itemHTML(item, unchecked.length + i)).join('');
       }
-
       content.innerHTML = html;
+
+      // Auto-move to completed section when all items checked
+      if (isDone(list)) setTimeout(goHome, 800);
     }
 
     function itemHTML(item, idx) {
@@ -940,16 +787,13 @@
         <div class="checklist-item${item.checked ? ' is-checked' : ''}" id="item-${item.id}" style="animation-delay:${idx * 0.03}s">
           <div class="item-main" onclick="toggleItem('${item.id}')">
             <div class="item-checkbox">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <div class="item-text">${escHtml(item.text)}</div>
           </div>
-          <button class="item-delete" onclick="deleteItem('${item.id}')" title="Remove item">
+          <button class="item-delete" onclick="deleteItem('${item.id}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>`;
@@ -975,10 +819,9 @@
 
     function resetList() {
       const list = lists.find(l => l.id === currentListId);
-      if (!list) return;
-      const anyChecked = list.items.some(it => it.checked);
-      if (!anyChecked) return;
+      if (!list || !list.items.some(it => it.checked)) return;
       list.items.forEach(it => { it.checked = false; });
+      if (list.archived) { list.archived = false; } // restore if archived
       save();
       renderDetail();
     }
@@ -987,18 +830,147 @@
       const list = lists.find(l => l.id === currentListId);
       if (!list) return;
       showDialog(
-        'Delete List?',
-        `"${list.name}" and all its items will be permanently deleted.`,
-        () => {
-          lists = lists.filter(l => l.id !== currentListId);
-          save();
-          goHome();
-        }
+        `Delete "${list.name}"?`,
+        `This ${list.type} and all its items will be permanently deleted.`,
+        () => { lists = lists.filter(l => l.id !== currentListId); save(); goHome(); }
       );
     }
 
+    function archiveList(id) {
+      closeAllSwipes();
+      const list = lists.find(l => l.id === id);
+      if (list) { list.archived = true; save(); renderHome(); }
+    }
+
+    function restoreList(id) {
+      closeAllSwipes();
+      const list = lists.find(l => l.id === id);
+      if (list) {
+        list.archived = false;
+        // uncheck all items so it comes back as active
+        list.items.forEach(it => { it.checked = false; });
+        save();
+        renderHome();
+      }
+    }
+
+    function deleteListById(id) {
+      closeAllSwipes();
+      const list = lists.find(l => l.id === id);
+      if (!list) return;
+      showDialog(
+        `Delete "${list.name}"?`,
+        'This action cannot be undone.',
+        () => { lists = lists.filter(l => l.id !== id); save(); renderHome(); }
+      );
+    }
+
+    // ── Swipe system ───────────────────────────────────────────────────────────
+    const SWIPE_W = 152; // 2 buttons × 76px
+
+    function getInner(id) {
+      const sw = document.getElementById('sw-' + id);
+      return sw ? sw.querySelector('.swipe-inner') : null;
+    }
+
+    function snapOpen(id) {
+      const el = getInner(id);
+      if (!el) return;
+      el.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+      el.style.transform = `translateX(-${SWIPE_W}px)`;
+      openSwipeId = id;
+    }
+
+    function snapClose(id) {
+      const el = getInner(id);
+      if (!el) return;
+      el.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1)';
+      el.style.transform = 'translateX(0)';
+      if (openSwipeId === id) openSwipeId = null;
+    }
+
+    function closeAllSwipes() {
+      if (openSwipeId) snapClose(openSwipeId);
+    }
+
+    function setupSwipeListeners() {
+      const content = document.getElementById('home-content');
+      let touch = null; // { id, startX, startY, isH, curX }
+
+      content.addEventListener('touchstart', e => {
+        const sw = e.target.closest('.swipeable');
+        if (!sw) return;
+        const t = e.touches[0];
+        touch = { id: sw.dataset.id, startX: t.clientX, startY: t.clientY, isH: null, curX: t.clientX };
+        const inner = getInner(sw.dataset.id);
+        if (inner) inner.style.transition = 'none';
+      }, { passive: true });
+
+      content.addEventListener('touchmove', e => {
+        if (!touch) return;
+        const t = e.touches[0];
+        const dx = t.clientX - touch.startX;
+        const dy = t.clientY - touch.startY;
+
+        if (touch.isH === null) {
+          if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) touch.isH = true;
+          else if (Math.abs(dy) > 8) { touch = null; return; }
+          else return;
+        }
+        if (!touch.isH) return;
+        e.preventDefault();
+        touch.curX = t.clientX;
+
+        const base = openSwipeId === touch.id ? -SWIPE_W : 0;
+        const x = Math.max(-SWIPE_W, Math.min(0, base + dx));
+        const inner = getInner(touch.id);
+        if (inner) inner.style.transform = `translateX(${x}px)`;
+      }, { passive: false });
+
+      content.addEventListener('touchend', () => {
+        if (!touch || !touch.isH) { touch = null; return; }
+        const { id, startX, curX } = touch;
+        const dx = curX - startX;
+        const wasOpen = openSwipeId === id;
+        touch = null;
+
+        if (wasOpen) {
+          dx > 40 ? snapClose(id) : snapOpen(id);
+        } else {
+          if (dx < -40) { closeAllSwipes(); snapOpen(id); }
+          else snapClose(id);
+        }
+      });
+
+      // Tap outside to close
+      document.addEventListener('touchstart', e => {
+        if (openSwipeId && !e.target.closest(`#sw-${openSwipeId}`)) closeAllSwipes();
+      }, { passive: true });
+    }
+
     // ── Bottom Sheet ───────────────────────────────────────────────────────────
+    function openRenameSheet() {
+      const list = lists.find(l => l.id === currentListId);
+      if (!list) return;
+      sheetMode = 'rename';
+      document.getElementById('sheet-type-picker').style.display = 'none';
+      document.getElementById('sheet-title').textContent = 'Rename';
+      document.getElementById('sheet-confirm-btn').textContent = 'Save';
+      document.getElementById('sheet-input').placeholder = 'Enter new name…';
+      document.getElementById('sheet-input').value = list.name;
+      document.getElementById('sheet-overlay').classList.add('visible');
+      document.getElementById('bottom-sheet').classList.add('visible');
+      setTimeout(() => { const inp = document.getElementById('sheet-input'); inp.focus(); inp.select(); }, 320);
+    }
+
+    function selectSheetType(type) {
+      sheetType = type;
+      document.getElementById('type-btn-folder').classList.toggle('active', type === 'folder');
+      document.getElementById('type-btn-list').classList.toggle('active', type === 'list');
+    }
+
     function openAddSheet() {
+      document.getElementById('sheet-type-picker').style.display = 'none';
       if (currentListId) {
         sheetMode = 'add-item';
         document.getElementById('sheet-title').textContent = 'Add Item';
@@ -1008,7 +980,7 @@
         sheetMode = 'add-list';
         document.getElementById('sheet-title').textContent = 'New List';
         document.getElementById('sheet-confirm-btn').textContent = 'Create';
-        document.getElementById('sheet-input').placeholder = 'e.g. Grocery, Europe Trip…';
+        document.getElementById('sheet-input').placeholder = 'e.g. Move House, Grocery Run…';
       }
       document.getElementById('sheet-input').value = '';
       document.getElementById('sheet-overlay').classList.add('visible');
@@ -1024,24 +996,24 @@
 
     function confirmSheet() {
       const val = document.getElementById('sheet-input').value.trim();
-      if (!val) {
-        document.getElementById('sheet-input').focus();
+      if (!val) { document.getElementById('sheet-input').focus(); return; }
+
+      if (sheetMode === 'rename') {
+        const list = lists.find(l => l.id === currentListId);
+        if (list) { list.name = val; save(); closeSheet(); document.getElementById('detail-list-name').textContent = val; }
         return;
       }
 
       if (sheetMode === 'add-list') {
-        lists.unshift({ id: genId(), name: val, items: [], createdAt: Date.now() });
-        save();
-        closeSheet();
-        renderHome();
-      } else if (sheetMode === 'add-item') {
+        const colorIdx = lists.length % COLORS.length;
+        lists.unshift({ id: genId(), name: val, type: 'list', colorIdx, archived: false, items: [], createdAt: Date.now() });
+        save(); closeSheet(); renderHome();
+        return;
+      }
+
+      if (sheetMode === 'add-item') {
         const list = lists.find(l => l.id === currentListId);
-        if (list) {
-          list.items.push({ id: genId(), text: val, checked: false });
-          save();
-          closeSheet();
-          renderDetail();
-        }
+        if (list) { list.items.push({ id: genId(), text: val, checked: false }); save(); closeSheet(); renderDetail(); }
       }
     }
 
@@ -1051,10 +1023,7 @@
       document.getElementById('dialog-body').textContent = body;
       dialogCallback = onConfirm;
       document.getElementById('dialog-overlay').classList.add('visible');
-      document.getElementById('dialog-confirm-btn').onclick = () => {
-        closeDialog();
-        if (dialogCallback) dialogCallback();
-      };
+      document.getElementById('dialog-confirm-btn').onclick = () => { closeDialog(); if (dialogCallback) dialogCallback(); };
     }
 
     function closeDialog() {
@@ -1069,25 +1038,20 @@
     });
 
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        closeDialog();
-        closeSheet();
-      }
+      if (e.key === 'Escape') { closeDialog(); closeSheet(); }
     });
 
     // ── Helpers ────────────────────────────────────────────────────────────────
     function escHtml(str) {
       return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     // ── Init ───────────────────────────────────────────────────────────────────
     load();
     renderHome();
+    setupSwipeListeners();
   </script>
 </body>
 </html>
