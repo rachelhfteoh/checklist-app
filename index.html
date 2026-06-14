@@ -999,13 +999,9 @@
 
     function deleteListById(id) {
       closeAllSwipes();
-      const list = lists.find(l => l.id === id);
-      if (!list) return;
-      showDialog(
-        `Delete "${list.name}"?`,
-        'This action cannot be undone.',
-        () => { lists = lists.filter(l => l.id !== id); save(); renderHome(); }
-      );
+      lists = lists.filter(l => l.id !== id);
+      save();
+      renderHome();
     }
 
     // ── Edit mode ──────────────────────────────────────────────────────────────
