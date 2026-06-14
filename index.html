@@ -349,6 +349,14 @@
       text-transform: uppercase; letter-spacing: 0.6px; padding: 12px 4px 8px;
     }
 
+    .items-section-header.collapsible {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none; -webkit-user-select: none;
+    }
+    .items-section-header.collapsible:active { opacity: 0.7; }
+    .collapse-chevron { transition: transform 0.2s ease; flex-shrink: 0; }
+    .items-section-header.collapsible.open .collapse-chevron { transform: rotate(180deg); }
+
     /* ── FAB ───────────────────────────────────────────────── */
     .fab {
       position: fixed; bottom: calc(28px + var(--safe-bottom)); right: 24px;
@@ -773,8 +781,14 @@
       const checked = list.items.filter(it => it.checked);
       let html = unchecked.map((item, i) => itemHTML(item, i)).join('');
       if (checked.length > 0) {
-        html += `<div class="items-section-header">Completed (${checked.length})</div>`;
-        html += checked.map((item, i) => itemHTML(item, unchecked.length + i)).join('');
+        html += `
+          <div class="items-section-header collapsible" onclick="toggleCompletedSection(this)">
+            <span>Completed (${checked.length})</span>
+            <svg class="collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="completed-items-group" style="display:none">
+            ${checked.map((item, i) => itemHTML(item, unchecked.length + i)).join('')}
+          </div>`;
       }
       content.innerHTML = html;
 
@@ -1040,6 +1054,12 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') { closeDialog(); closeSheet(); }
     });
+
+    function toggleCompletedSection(header) {
+      const group = header.nextElementSibling;
+      const isOpen = header.classList.toggle('open');
+      group.style.display = isOpen ? 'block' : 'none';
+    }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
     function escHtml(str) {
