@@ -1016,7 +1016,7 @@
     }
 
     function exitEditMode() {
-      saveInlineItem();
+      saveInlineItem(false); // don't refocus — we're exiting
       editMode = false;
       if (editDragController) { editDragController.abort(); editDragController = null; }
       renderDetail();
@@ -1031,7 +1031,7 @@
       setTimeout(() => { const inp = document.getElementById('inline-add-input'); if (inp) inp.focus(); }, 60);
     }
 
-    function saveInlineItem() {
+    function saveInlineItem(keepFocus = true) {
       const inp = document.getElementById('inline-add-input');
       if (!inp) return;
       const val = inp.value.trim();
@@ -1042,7 +1042,7 @@
       list.items.push(newItem);
       save();
       inp.value = '';
-      inp.focus(); // keep keyboard open — safe here since we're inside a user gesture
+      if (keepFocus) inp.focus(); // keep keyboard open when adding multiple items
 
       // Insert item into DOM above the add row (no full re-render = keyboard stays up on iOS)
       const addRow = document.getElementById('add-inline-row');
