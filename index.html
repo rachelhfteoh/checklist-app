@@ -1303,7 +1303,7 @@
       document.getElementById('dialog-body').textContent = body;
       dialogCallback = onConfirm;
       document.getElementById('dialog-overlay').classList.add('visible');
-      document.getElementById('dialog-confirm-btn').onclick = () => { closeDialog(); if (dialogCallback) dialogCallback(); };
+      document.getElementById('dialog-confirm-btn').onclick = () => { const cb = dialogCallback; closeDialog(); if (cb) cb(); };
     }
 
     function closeDialog() {
