@@ -344,6 +344,64 @@
     }
     .item-delete:hover, .item-delete:active { color: var(--danger); }
 
+    /* ── Edit mode ─────────────────────────────────────────────── */
+    .item-delete-left {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--danger); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-left: 14px;
+      transition: transform 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .item-delete-left:active { transform: scale(0.88); }
+
+    .item-drag-handle {
+      width: 40px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-tertiary); flex-shrink: 0;
+      cursor: grab; touch-action: none;
+      -webkit-user-select: none; user-select: none;
+    }
+
+    .checklist-item.is-dragging { opacity: 0.35; }
+
+    .drag-placeholder {
+      border-radius: 14px; margin-bottom: 8px;
+      background: rgba(124,58,237,0.07);
+      border: 2px dashed rgba(124,58,237,0.3);
+    }
+
+    .add-inline-row {
+      background: var(--card); border-radius: 14px;
+      box-shadow: var(--card-shadow);
+      display: flex; align-items: center;
+      margin-bottom: 8px; overflow: hidden;
+      animation: slideUp 0.2s ease forwards;
+    }
+
+    .add-inline-circle {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px dashed var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: var(--text-tertiary); margin-right: 4px;
+    }
+
+    .inline-add-input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-family: var(--font); font-size: 15px; font-weight: 500;
+      color: var(--text-primary); padding: 14px 4px;
+    }
+    .inline-add-input::placeholder { color: var(--text-tertiary); }
+
+    .edit-mode-done {
+      width: 38px; height: 38px; border-radius: 12px; border: none;
+      background: #dcfce7; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #16a34a; transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .edit-mode-done:active { opacity: 0.7; }
+
     .items-section-header {
       font-size: 12px; font-weight: 700; color: var(--text-tertiary);
       text-transform: uppercase; letter-spacing: 0.6px; padding: 12px 4px 8px;
@@ -587,6 +645,8 @@
     let sheetType = 'list';
     let dialogCallback = null;
     let openSwipeId = null;
+    let editMode = false;
+    let editDragController = null;
 
     // ── Colour palette ─────────────────────────────────────────────────────────
     const COLORS = [
@@ -631,6 +691,8 @@
 
     // ── Navigation ─────────────────────────────────────────────────────────────
     function goHome() {
+      editMode = false;
+      if (editDragController) { editDragController.abort(); editDragController = null; }
       openSwipeId = null;
       document.getElementById('home-view').classList.remove('slide-out');
       document.getElementById('detail-view').classList.remove('slide-in');
@@ -765,9 +827,26 @@
       document.getElementById('detail-total').textContent = total;
       document.getElementById('detail-progress-fill').style.width = pct + '%';
 
+      // Toggle header action button
+      const headerActions = document.querySelector('.detail-header-actions');
+      if (headerActions) {
+        headerActions.innerHTML = editMode
+          ? `<button class="edit-mode-done" onclick="exitEditMode()" title="Done">
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+             </button>`
+          : `<button class="icon-btn danger" onclick="deleteCurrentList()" title="Delete">
+               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                 <polyline points="3 6 5 6 21 6"/>
+                 <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                 <path d="M10 11v6M14 11v6"/>
+                 <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+               </svg>
+             </button>`;
+      }
+
       const content = document.getElementById('detail-content');
 
-      if (total === 0) {
+      if (total === 0 && !editMode) {
         content.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">✍️</div>
@@ -779,7 +858,22 @@
 
       const unchecked = list.items.filter(it => !it.checked);
       const checked = list.items.filter(it => it.checked);
-      let html = unchecked.map((item, i) => itemHTML(item, i)).join('');
+      let html = unchecked.map((item, i) => itemHTML(item, i, editMode)).join('');
+
+      if (editMode) {
+        html += `
+          <div class="add-inline-row" id="add-inline-row">
+            <div style="width:26px;height:26px;flex-shrink:0;margin-left:14px;"></div>
+            <div class="item-main" style="gap:10px;padding-left:10px;">
+              <div class="add-inline-circle">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <input class="inline-add-input" id="inline-add-input" placeholder="New item…" autocomplete="off" autocorrect="off" spellcheck="false">
+            </div>
+            <div style="width:40px;flex-shrink:0;"></div>
+          </div>`;
+      }
+
       if (checked.length > 0) {
         html += `
           <div class="items-section-header collapsible" onclick="toggleCompletedSection(this)">
@@ -787,16 +881,48 @@
             <svg class="collapse-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="completed-items-group" style="display:none">
-            ${checked.map((item, i) => itemHTML(item, unchecked.length + i)).join('')}
+            ${checked.map((item, i) => itemHTML(item, unchecked.length + i, false)).join('')}
           </div>`;
       }
+
       content.innerHTML = html;
+
+      if (editMode) {
+        setupEditDragListeners();
+        const inp = document.getElementById('inline-add-input');
+        if (inp) {
+          inp.addEventListener('keydown', e => {
+            if (e.key === 'Enter') saveInlineItem();
+            if (e.key === 'Escape') exitEditMode();
+          });
+        }
+      }
 
       // Auto-move to completed section when all items checked
       if (isDone(list)) setTimeout(goHome, 800);
     }
 
-    function itemHTML(item, idx) {
+    function itemHTML(item, idx, inEdit) {
+      if (inEdit) {
+        return `
+          <div class="checklist-item${item.checked ? ' is-checked' : ''}" id="item-${item.id}" data-item-id="${item.id}" style="animation-delay:${idx * 0.03}s">
+            <button class="item-delete-left" onclick="deleteItemInline('${item.id}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <div class="item-main" onclick="toggleItem('${item.id}')" style="padding-left:10px;">
+              <div class="item-checkbox">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="item-text">${escHtml(item.text)}</div>
+            </div>
+            <div class="item-drag-handle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+            </div>
+          </div>`;
+      }
       return `
         <div class="checklist-item${item.checked ? ' is-checked' : ''}" id="item-${item.id}" style="animation-delay:${idx * 0.03}s">
           <div class="item-main" onclick="toggleItem('${item.id}')">
@@ -877,6 +1003,121 @@
         'This action cannot be undone.',
         () => { lists = lists.filter(l => l.id !== id); save(); renderHome(); }
       );
+    }
+
+    // ── Edit mode ──────────────────────────────────────────────────────────────
+    function enterEditMode() {
+      editMode = true;
+      renderDetail();
+      setTimeout(() => { const inp = document.getElementById('inline-add-input'); if (inp) inp.focus(); }, 60);
+    }
+
+    function exitEditMode() {
+      saveInlineItem();
+      editMode = false;
+      if (editDragController) { editDragController.abort(); editDragController = null; }
+      renderDetail();
+    }
+
+    function deleteItemInline(itemId) {
+      const list = lists.find(l => l.id === currentListId);
+      if (!list) return;
+      list.items = list.items.filter(it => it.id !== itemId);
+      save();
+      renderDetail();
+      setTimeout(() => { const inp = document.getElementById('inline-add-input'); if (inp) inp.focus(); }, 60);
+    }
+
+    function saveInlineItem() {
+      const inp = document.getElementById('inline-add-input');
+      if (!inp) return;
+      const val = inp.value.trim();
+      if (!val) return;
+      const list = lists.find(l => l.id === currentListId);
+      if (!list) return;
+      list.items.push({ id: genId(), text: val, checked: false });
+      save();
+      inp.value = '';
+      renderDetail();
+      setTimeout(() => { const ni = document.getElementById('inline-add-input'); if (ni) ni.focus(); }, 60);
+    }
+
+    function setupEditDragListeners() {
+      if (editDragController) editDragController.abort();
+      editDragController = new AbortController();
+      const signal = editDragController.signal;
+      const content = document.getElementById('detail-content');
+      let drag = null;
+
+      content.addEventListener('touchstart', e => {
+        const handle = e.target.closest('.item-drag-handle');
+        if (!handle) return;
+        e.preventDefault();
+        const el = handle.closest('.checklist-item[data-item-id]');
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const touch = e.touches[0];
+        const ghost = el.cloneNode(true);
+        ghost.removeAttribute('id');
+        Object.assign(ghost.style, {
+          position: 'fixed', left: rect.left + 'px', top: rect.top + 'px',
+          width: rect.width + 'px', height: rect.height + 'px',
+          pointerEvents: 'none', zIndex: '1000', opacity: '0.92',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.18)', borderRadius: '14px',
+          margin: '0', animation: 'none', transition: 'none',
+        });
+        document.body.appendChild(ghost);
+        const placeholder = document.createElement('div');
+        placeholder.className = 'drag-placeholder';
+        placeholder.style.height = rect.height + 'px';
+        el.parentNode.insertBefore(placeholder, el);
+        el.style.display = 'none';
+        drag = { el, ghost, placeholder, startTouchY: touch.clientY, startGhostTop: rect.top };
+      }, { passive: false, signal });
+
+      content.addEventListener('touchmove', e => {
+        if (!drag) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const dy = touch.clientY - drag.startTouchY;
+        const newTop = drag.startGhostTop + dy;
+        drag.ghost.style.top = newTop + 'px';
+        const ghostMidY = newTop + drag.ghost.offsetHeight / 2;
+        const items = [...content.querySelectorAll('.checklist-item[data-item-id]')];
+        let inserted = false;
+        for (const item of items) {
+          const r = item.getBoundingClientRect();
+          if (ghostMidY < r.top + r.height / 2) {
+            if (drag.placeholder.nextSibling !== item) content.insertBefore(drag.placeholder, item);
+            inserted = true; break;
+          }
+        }
+        if (!inserted) {
+          const addRow = document.getElementById('add-inline-row');
+          if (addRow) { if (drag.placeholder.nextSibling !== addRow) content.insertBefore(drag.placeholder, addRow); }
+          else content.appendChild(drag.placeholder);
+        }
+      }, { passive: false, signal });
+
+      content.addEventListener('touchend', () => {
+        if (!drag) return;
+        drag.placeholder.parentNode.insertBefore(drag.el, drag.placeholder);
+        drag.el.style.display = '';
+        drag.placeholder.remove();
+        drag.ghost.remove();
+        const list = lists.find(l => l.id === currentListId);
+        if (list) {
+          const items = [...content.querySelectorAll('.checklist-item[data-item-id]')];
+          const orderedIds = items.map(el => el.dataset.itemId);
+          const itemMap = {};
+          list.items.forEach(it => { itemMap[it.id] = it; });
+          const unchecked = orderedIds.map(id => itemMap[id]).filter(Boolean);
+          const checked = list.items.filter(it => it.checked);
+          list.items = [...unchecked, ...checked];
+          save();
+        }
+        drag = null;
+      }, { signal });
     }
 
     // ── Swipe system ───────────────────────────────────────────────────────────
@@ -984,18 +1225,20 @@
     }
 
     function openAddSheet() {
-      document.getElementById('sheet-type-picker').style.display = 'none';
       if (currentListId) {
-        sheetMode = 'add-item';
-        document.getElementById('sheet-title').textContent = 'Add Item';
-        document.getElementById('sheet-confirm-btn').textContent = 'Add';
-        document.getElementById('sheet-input').placeholder = 'Enter item name…';
-      } else {
-        sheetMode = 'add-list';
-        document.getElementById('sheet-title').textContent = 'New List';
-        document.getElementById('sheet-confirm-btn').textContent = 'Create';
-        document.getElementById('sheet-input').placeholder = 'e.g. Move House, Grocery Run…';
+        if (editMode) {
+          const inp = document.getElementById('inline-add-input');
+          if (inp) inp.focus();
+          return;
+        }
+        enterEditMode();
+        return;
       }
+      document.getElementById('sheet-type-picker').style.display = 'none';
+      sheetMode = 'add-list';
+      document.getElementById('sheet-title').textContent = 'New List';
+      document.getElementById('sheet-confirm-btn').textContent = 'Create';
+      document.getElementById('sheet-input').placeholder = 'e.g. Move House, Grocery Run…';
       document.getElementById('sheet-input').value = '';
       document.getElementById('sheet-overlay').classList.add('visible');
       document.getElementById('bottom-sheet').classList.add('visible');
