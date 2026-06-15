@@ -831,7 +831,7 @@
       const headerActions = document.querySelector('.detail-header-actions');
       if (headerActions) {
         headerActions.innerHTML = editMode
-          ? `<button class="edit-mode-done" id="edit-done-btn" title="Done">
+          ? `<button class="edit-mode-done" ontouchstart="event.preventDefault();exitEditMode();" onclick="exitEditMode()" title="Done">
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
              </button>`
           : `<button class="icon-btn danger" onclick="deleteCurrentList()" title="Delete">
@@ -898,12 +898,6 @@
             }
             if (e.key === 'Escape') exitEditMode();
           });
-        }
-        // Use touchstart so it fires before iOS keyboard dismissal
-        const doneBtn = document.getElementById('edit-done-btn');
-        if (doneBtn) {
-          doneBtn.addEventListener('touchstart', e => { e.preventDefault(); exitEditMode(); }, { passive: false });
-          doneBtn.addEventListener('click', exitEditMode); // desktop fallback
         }
       }
 
@@ -1019,6 +1013,7 @@
     }
 
     function exitEditMode() {
+      if (!editMode) return;
       saveInlineItem(false); // don't refocus — we're exiting
       editMode = false;
       if (editDragController) { editDragController.abort(); editDragController = null; }
