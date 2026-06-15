@@ -898,6 +898,15 @@
             }
             if (e.key === 'Escape') exitEditMode();
           });
+          // When keyboard Done key dismisses keyboard, exit edit mode after short delay
+          inp.addEventListener('blur', () => {
+            setTimeout(() => {
+              if (!editMode) return;
+              const active = document.activeElement;
+              const detailView = document.getElementById('detail-view');
+              if (!detailView || !detailView.contains(active)) exitEditMode();
+            }, 200);
+          });
         }
       }
 
